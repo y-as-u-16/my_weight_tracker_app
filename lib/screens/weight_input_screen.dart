@@ -5,16 +5,19 @@ import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class WeightInputScreen extends StatefulWidget {
-  const WeightInputScreen({Key? key}) : super(key: key);
+  const WeightInputScreen({
+    super.key,
+  });
 
   @override
+  // ignore: library_private_types_in_public_api
   _WeightInputScreenState createState() => _WeightInputScreenState();
 }
 
 class _WeightInputScreenState extends State<WeightInputScreen> {
   final TextEditingController _weightController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
-  Map<DateTime, WeightEntry> _weightEntries = {};
+  final Map<DateTime, WeightEntry> _weightEntries = {};
   List<FlSpot> _spots = [];
   CalendarFormat _calendarFormat = CalendarFormat.month;
 
@@ -74,16 +77,34 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
                 });
               },
               eventLoader: (day) {
-                return _weightEntries.containsKey(day)
-                    ? [_weightEntries[day]!]
+                final normalizedDay = DateTime(day.year, day.month, day.day);
+                return _weightEntries.containsKey(normalizedDay)
+                    ? [_weightEntries[normalizedDay]!]
                     : [];
               },
               calendarStyle: const CalendarStyle(
                 markersMaxCount: 1,
+                markerSize: 8,
                 markerDecoration: BoxDecoration(
                   color: Colors.black,
                   shape: BoxShape.circle,
                 ),
+              ),
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, date, events) {
+                  if (events.isNotEmpty) {
+                    return Positioned(
+                      bottom: 1,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                            shape: BoxShape.circle, color: Colors.black),
+                        width: 8,
+                        height: 8,
+                      ),
+                    );
+                  }
+                  return null;
+                },
               ),
             ),
             const SizedBox(height: 20),
