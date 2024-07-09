@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_weight_tracker_app/screen/weight_input.dart';
+import 'package:my_weight_tracker_app/screens/weight_input_screen.dart';
 
 void main() => runApp(const MyApp());
 
