@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_weight_tracker_app/models/weight_entry.dart';
 import 'package:my_weight_tracker_app/screens/weight_input_screen.dart';
 import 'package:my_weight_tracker_app/screens/graph_screen.dart';
 
@@ -12,10 +13,13 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  static const List<Widget> _widgetOptions = <Widget>[
-    WeightInputScreen(),
-    GraphScreen(),
-  ];
+  List<WeightEntry> _weightEntries = [];
+
+  void _updateWeightEntries(List<WeightEntry> entries) {
+    setState(() {
+      _weightEntries = entries;
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -27,7 +31,12 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+        child: _selectedIndex == 0
+            ? WeightInputScreen(
+                weightEntries: _weightEntries,
+                onWeightEntriesUpdated: _updateWeightEntries,
+              )
+            : GraphScreen(weightEntries: _weightEntries),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[

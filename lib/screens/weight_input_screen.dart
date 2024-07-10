@@ -2,14 +2,20 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:my_weight_tracker_app/models/weight_entry.dart';
+import 'package:my_weight_tracker_app/screens/graph_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class WeightInputScreen extends StatefulWidget {
+  final List<WeightEntry> weightEntries;
+  final Function(List<WeightEntry>) onWeightEntriesUpdated;
+
   const WeightInputScreen({
     super.key,
+    required this.weightEntries,
+    required this.onWeightEntriesUpdated,
   });
 
   @override
@@ -27,6 +33,7 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
   @override
   void initState() {
     super.initState();
+    _weightEntries = {for (var entry in widget.weightEntries) entry.date: entry};
     _loadWeightEntries();
   }
 
@@ -47,7 +54,8 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
 
   void _saveWeightEntries() async {
     final prefs = await SharedPreferences.getInstance();
-    final encodedMap = _weightEntries.map((key, value) => MapEntry(key.toIso8601String(), value.toJson()));
+    final encodedMap = _weightEntries
+        .map((key, value) => MapEntry(key.toIso8601String(), value.toJson()));
     await prefs.setString('weightEntries', jsonEncode(encodedMap));
   }
 
@@ -69,6 +77,7 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
               WeightEntry(dateWithoutTime, weight);
           _updateSpots();
           _saveWeightEntries(); // 新しいエントリを保存
+          widget.onWeightEntriesUpdated(_weightEntries.values.toList());
         });
         _weightController.clear();
       } else {
@@ -168,6 +177,20 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
             ),
             const SizedBox(height: 20),
             // ここにグラフを表示するウィジェットを配置
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => GraphScreen(
+                      weightEntries: _weightEntries.values.toList()
+                        ..sort((a, b) => a.date.compareTo(b.date)),
+                    ),
+                  ),
+                );
+              },
+              child: const Text('グラフを表示'),
+            ),
           ],
         ),
       ),
