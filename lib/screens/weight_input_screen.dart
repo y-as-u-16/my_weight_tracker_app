@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:my_weight_tracker_app/models/weight_entry.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -17,9 +20,36 @@ class WeightInputScreen extends StatefulWidget {
 class _WeightInputScreenState extends State<WeightInputScreen> {
   final TextEditingController _weightController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
-  final Map<DateTime, WeightEntry> _weightEntries = {};
+  Map<DateTime, WeightEntry> _weightEntries = {};
   List<FlSpot> _spots = [];
   CalendarFormat _calendarFormat = CalendarFormat.month;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWeightEntries();
+  }
+
+  void _loadWeightEntries() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? weightEntriesJson = prefs.getString('weightEntries');
+    if (weightEntriesJson != null) {
+      final Map<String, dynamic> decodedMap = jsonDecode(weightEntriesJson);
+      setState(() {
+        _weightEntries = decodedMap.map((key, value) {
+          final entry = WeightEntry.fromJson(value);
+          return MapEntry(DateTime.parse(key), entry);
+        });
+        _updateSpots();
+      });
+    }
+  }
+
+  void _saveWeightEntries() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encodedMap = _weightEntries.map((key, value) => MapEntry(key.toIso8601String(), value.toJson()));
+    await prefs.setString('weightEntries', jsonEncode(encodedMap));
+  }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     setState(() {
@@ -38,6 +68,7 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
           _weightEntries[dateWithoutTime] =
               WeightEntry(dateWithoutTime, weight);
           _updateSpots();
+          _saveWeightEntries(); // 新しいエントリを保存
         });
         _weightController.clear();
       } else {
