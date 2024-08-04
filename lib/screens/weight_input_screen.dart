@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:my_weight_tracker_app/models/weight_entry.dart';
-import 'package:my_weight_tracker_app/screens/graph_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
@@ -33,7 +32,9 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
   @override
   void initState() {
     super.initState();
-    _weightEntries = {for (var entry in widget.weightEntries) entry.date: entry};
+    _weightEntries = {
+      for (var entry in widget.weightEntries) entry.date: entry
+    };
     _loadWeightEntries();
   }
 
@@ -98,100 +99,90 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('体重入力')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            TableCalendar(
-              firstDay: DateTime.utc(2021, 1, 1),
-              lastDay: DateTime.now(),
-              focusedDay: _selectedDate,
-              calendarFormat: _calendarFormat,
-              selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
-              onDaySelected: _onDaySelected,
-              onFormatChanged: (format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              },
-              eventLoader: (day) {
-                final normalizedDay = DateTime(day.year, day.month, day.day);
-                return _weightEntries.containsKey(normalizedDay)
-                    ? [_weightEntries[normalizedDay]!]
-                    : [];
-              },
-              calendarStyle: const CalendarStyle(
-                markersMaxCount: 1,
-                markerSize: 8,
-                markerDecoration: BoxDecoration(
-                  color: Colors.black,
-                  shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text('体重入力')),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              TableCalendar(
+                firstDay: DateTime.utc(2021, 1, 1),
+                lastDay: DateTime.now(),
+                focusedDay: _selectedDate,
+                calendarFormat: _calendarFormat,
+                selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
+                onDaySelected: _onDaySelected,
+                onFormatChanged: (format) {
+                  setState(() {
+                    _calendarFormat = format;
+                  });
+                },
+                eventLoader: (day) {
+                  final normalizedDay = DateTime(day.year, day.month, day.day);
+                  return _weightEntries.containsKey(normalizedDay)
+                      ? [_weightEntries[normalizedDay]!]
+                      : [];
+                },
+                calendarStyle: const CalendarStyle(
+                  markersMaxCount: 1,
+                  markerSize: 8,
+                  markerDecoration: BoxDecoration(
+                    color: Colors.black,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                calendarBuilders: CalendarBuilders(
+                  markerBuilder: (context, date, events) {
+                    if (events.isNotEmpty) {
+                      return Positioned(
+                        bottom: 1,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                              shape: BoxShape.circle, color: Colors.black),
+                          width: 8,
+                          height: 8,
+                        ),
+                      );
+                    }
+                    return null;
+                  },
                 ),
               ),
-              calendarBuilders: CalendarBuilders(
-                markerBuilder: (context, date, events) {
-                  if (events.isNotEmpty) {
-                    return Positioned(
-                      bottom: 1,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                            shape: BoxShape.circle, color: Colors.black),
-                        width: 8,
-                        height: 8,
-                      ),
-                    );
-                  }
-                  return null;
-                },
+              const SizedBox(height: 20),
+              Text(
+                '選択された日付: ${DateFormat('yyyy/MM/dd').format(_selectedDate)}',
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              '選択された日付: ${DateFormat('yyyy/MM/dd').format(_selectedDate)}',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              _weightEntries.containsKey(_selectedDate)
-                  ? '記録された体重: ${_weightEntries[_selectedDate]!.weight} kg'
-                  : '体重未記録',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _weightController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: '体重を入力してください（kg）',
-                hintText: _weightEntries.containsKey(_selectedDate)
-                    ? '現在の記録: ${_weightEntries[_selectedDate]!.weight} kg'
-                    : null,
+              const SizedBox(height: 10),
+              Text(
+                _weightEntries.containsKey(_selectedDate)
+                    ? '記録された体重: ${_weightEntries[_selectedDate]!.weight} kg'
+                    : '体重未記録',
+                style: const TextStyle(fontSize: 16),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _addData,
-              child: const Text('保存'),
-            ),
-            const SizedBox(height: 20),
-            // ここにグラフを表示するウィジェットを配置
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GraphScreen(
-                      weightEntries: _weightEntries.values.toList()
-                        ..sort((a, b) => a.date.compareTo(b.date)),
-                    ),
-                  ),
-                );
-              },
-              child: const Text('グラフを表示'),
-            ),
-          ],
+              const SizedBox(height: 20),
+              TextField(
+                controller: _weightController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: '体重を入力してください（kg）',
+                  hintText: _weightEntries.containsKey(_selectedDate)
+                      ? '現在の記録: ${_weightEntries[_selectedDate]!.weight} kg'
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _addData,
+                child: const Text('保存'),
+              ),
+            ],
+          ),
         ),
       ),
     );

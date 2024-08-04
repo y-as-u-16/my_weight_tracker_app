@@ -12,6 +12,14 @@ class GraphScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (weightEntries.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('体重グラフ')),
+        body: const Center(
+          child: Text('データがありません。体重を入力してください。'),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(title: const Text('体重グラフ')),
       body: Padding(
@@ -24,7 +32,8 @@ class GraphScreen extends StatelessWidget {
                 sideTitles: SideTitles(
                   showTitles: true,
                   getTitlesWidget: (value, meta) {
-                    final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+                    final date =
+                        DateTime.fromMillisecondsSinceEpoch(value.toInt());
                     return Text(
                       '${date.month}/${date.day}',
                       style: const TextStyle(fontSize: 10),
@@ -45,14 +54,22 @@ class GraphScreen extends StatelessWidget {
                   interval: 5, // 5kg間隔
                 ),
               ),
-              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles:
+                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles:
+                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             ),
             borderData: FlBorderData(show: true),
             minX: weightEntries.first.date.millisecondsSinceEpoch.toDouble(),
             maxX: weightEntries.last.date.millisecondsSinceEpoch.toDouble(),
-            minY: weightEntries.map((e) => e.weight).reduce((a, b) => a < b ? a : b) - 5,
-            maxY: weightEntries.map((e) => e.weight).reduce((a, b) => a > b ? a : b) + 5,
+            minY: weightEntries
+                    .map((e) => e.weight)
+                    .reduce((a, b) => a < b ? a : b) -
+                5,
+            maxY: weightEntries
+                    .map((e) => e.weight)
+                    .reduce((a, b) => a > b ? a : b) +
+                5,
             lineBarsData: [
               LineChartBarData(
                 spots: weightEntries
