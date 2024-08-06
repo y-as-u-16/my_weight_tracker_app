@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class WeightInputScreen extends StatefulWidget {
   final List<WeightEntry> weightEntries;
@@ -18,7 +19,6 @@ class WeightInputScreen extends StatefulWidget {
   });
 
   @override
-  // ignore: library_private_types_in_public_api
   _WeightInputScreenState createState() => _WeightInputScreenState();
 }
 
@@ -36,6 +36,7 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
       for (var entry in widget.weightEntries) entry.date: entry
     };
     _loadWeightEntries();
+    initializeDateFormatting(); // ローカライズを初期化
   }
 
   void _loadWeightEntries() async {
@@ -77,7 +78,7 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
           _weightEntries[dateWithoutTime] =
               WeightEntry(dateWithoutTime, weight);
           _updateSpots();
-          _saveWeightEntries(); // 新しいエントリを保存
+          _saveWeightEntries();
           widget.onWeightEntriesUpdated(_weightEntries.values.toList());
         });
         _weightController.clear();
@@ -110,6 +111,7 @@ class _WeightInputScreenState extends State<WeightInputScreen> {
           child: Column(
             children: [
               TableCalendar(
+                locale: 'ja_JP', // 日本語に設定
                 firstDay: DateTime.utc(2021, 1, 1),
                 lastDay: DateTime.now(),
                 focusedDay: _selectedDate,
